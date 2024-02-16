@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
  * 课程发布 Mapper 接口
  * </p>
  *
- * @author itcast
+ * @author ronan
  */
 public interface CoursePublishPreMapper extends BaseMapper<CoursePublishPre> {
 

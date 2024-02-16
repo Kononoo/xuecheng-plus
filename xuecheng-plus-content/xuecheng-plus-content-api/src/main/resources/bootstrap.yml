@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+# 微服务配置
+spring:
+  application:
+    name: content-api
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://192.168.56.100:3306/xcplus_content?useSSL=false&serverTimezone=UTC&characterEncoding=utf-8&nullCatalogMeansCurrent=true
+    username: root
+    password: mysql
+# 日志文件配置路径
+logging:
+  config: classpath:log4j2-dev.xml
+
+swagger:
+  title: "学成在线内容管理系统"
+  description: "内容系统管理系统对课程相关信息继续管理"
+  base-package: com.xuecheng.content
+  enabled: true
+  version: 1.0.0

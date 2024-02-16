@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
  * 课程分类 Mapper 接口
  * </p>
  *
- * @author itcast
+ * @author ronan
  */
 public interface CourseCategoryMapper extends BaseMapper<CourseCategory> {
 

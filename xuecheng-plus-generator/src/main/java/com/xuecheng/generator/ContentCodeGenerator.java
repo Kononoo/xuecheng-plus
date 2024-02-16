@@ -51,7 +51,7 @@ public class ContentCodeGenerator {
 		gc.setFileOverride(true);
 		//生成路径
 		gc.setOutputDir(System.getProperty("user.dir") + "/xuecheng-plus-generator/src/main/java");
-		gc.setAuthor("itcast");
+		gc.setAuthor("ronan");
 		gc.setOpen(false);
 		gc.setSwagger2(false);
 		gc.setServiceName("%sService");
@@ -67,8 +67,7 @@ public class ContentCodeGenerator {
 		// 数据库配置
 		DataSourceConfig dsc = new DataSourceConfig();
 		dsc.setDbType(DbType.MYSQL);
-		dsc.setUrl("jdbc:mysql://192.168.101.65:3306/xc402_" + SERVICE_NAME
-				+ "?serverTimezone=UTC&useUnicode=true&useSSL=false&characterEncoding=utf8");
+		dsc.setUrl("jdbc:mysql://192.168.56.100:3306/xcplus_content?useSSL=false&serverTimezone=UTC&characterEncoding=utf-8&nullCatalogMeansCurrent=true");
 //		dsc.setDriverName("com.mysql.jdbc.Driver");
 		dsc.setDriverName("com.mysql.cj.jdbc.Driver");
 		dsc.setUsername(DATA_SOURCE_USER_NAME);
@@ -79,10 +78,11 @@ public class ContentCodeGenerator {
 		PackageConfig pc = new PackageConfig();
 		pc.setModuleName(SERVICE_NAME);
 		pc.setParent("com.xuecheng");
-
+		pc.setEntity("model.po");
+		pc.setMapper("mapper");
+		pc.setService("service");
 		pc.setServiceImpl("service.impl");
 		pc.setXml("mapper");
-		pc.setEntity("model.po");
 		mpg.setPackageInfo(pc);
 
 
