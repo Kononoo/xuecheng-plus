@@ -7,14 +7,17 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
       </profile>
-      <profile name="Annotation profile for xuecheng-plus-parent" enabled="true">
+      <profile name="Annotation profile for xuecheng-plus-content" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$PROJECT_DIR$/../../../Develop/Maven/apache-maven-3.6.3/repository/org/projectlombok/lombok/1.18.8/lombok-1.18.8.jar" />
         </processorPath>
-        <module name="xuecheng-plus-parent" />
+        <module name="xuecheng-plus-content-service" />
+        <module name="xuecheng-plus-content-api" />
+        <module name="xuecheng-plus-content-model" />
+        <module name="xuecheng-plus-base" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="17" />
