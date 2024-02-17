@@ -23,7 +23,7 @@ import java.util.List;
  * @Version: v1.0
  */
 @Slf4j
-@Api(tags = "字典数据")
+@Api(tags = "数据字典管理")
 @RestController
 @RequestMapping("/dictionary")
 public class DictionaryController {

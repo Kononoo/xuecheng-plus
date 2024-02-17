@@ -17,6 +17,7 @@
         </processorPath>
         <module name="xuecheng-plus-system-service" />
         <module name="xuecheng-plus-system-model" />
+        <module name="xuecheng-plus-system-api" />
         <module name="xuecheng-plus-content-service" />
         <module name="xuecheng-plus-content-api" />
         <module name="xuecheng-plus-content-model" />
