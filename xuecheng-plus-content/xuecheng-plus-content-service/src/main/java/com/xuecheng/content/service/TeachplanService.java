@@ -1,5 +1,6 @@
 package com.xuecheng.content.service;
 
+import com.xuecheng.content.model.dto.SaveTeachplanDto;
 import com.xuecheng.content.model.po.Teachplan;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.xuecheng.content.model.vo.TeachplanVo;
@@ -22,4 +23,10 @@ public interface TeachplanService {
      * @return
      */
     List<TeachplanVo> getTeachPlanTree(Long courseId);
+
+    /**
+     * 添加、修改课程计划
+     * @param teachplanDto
+     */
+    void saveTeachplan(SaveTeachplanDto teachplanDto);
 }
