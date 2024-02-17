@@ -22,5 +22,5 @@ swagger:
   version: 1.0.0
 
 mybatis-plus:
-#  mapper-locations:
+  mapper-locations:
   type-aliases-package: com.xuecheng.content.model.dto
