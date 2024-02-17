@@ -35,7 +35,7 @@ public class CourseBaseInfoController {
     @Resource
     private CourseBaseService courseBaseService;
 
-    @ApiOperation("课程查询")
+    @ApiOperation("课程分页查询")
     @PostMapping("/list")
     public PageResult<CourseBase> list(PageParams pageParams, @RequestBody(required = false) QueryCourseParamsDto queryCourseParamsDto) {
         PageResult<CourseBase> courseBasePageResult = courseBaseService.queryCourseBaseList(pageParams, queryCourseParamsDto);
