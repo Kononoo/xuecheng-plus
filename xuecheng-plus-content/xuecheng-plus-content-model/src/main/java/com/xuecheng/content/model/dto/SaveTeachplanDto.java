@@ -1,5 +1,6 @@
 package com.xuecheng.content.model.dto;
 
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 /**
@@ -12,6 +13,7 @@ import lombok.Data;
  * @Version: v1.0
  */
 @Data
+@ApiModel(value = "添加课程计划")
 public class SaveTeachplanDto {
 
     /**

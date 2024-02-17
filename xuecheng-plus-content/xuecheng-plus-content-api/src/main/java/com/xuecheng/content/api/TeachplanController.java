@@ -1,5 +1,6 @@
 package com.xuecheng.content.api;
 
+import com.xuecheng.content.model.dto.BindTeachplanMediaDto;
 import com.xuecheng.content.model.dto.SaveTeachplanDto;
 import com.xuecheng.content.model.vo.TeachplanVo;
 import com.xuecheng.content.service.TeachplanService;
@@ -7,6 +8,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -40,5 +42,11 @@ public class TeachplanController {
     @PostMapping
     public void associationMedia(@RequestBody SaveTeachplanDto teachplanDto) {
         teachplanService.saveTeachplan(teachplanDto);
+    }
+
+    @ApiOperation("课程计划和媒资信息绑定")
+    @PostMapping("/association/media")
+    public void associationMedia(@RequestBody @Validated BindTeachplanMediaDto bindTeachplanMediaDto) {
+        teachplanService.associationMedia(bindTeachplanMediaDto);
     }
 }

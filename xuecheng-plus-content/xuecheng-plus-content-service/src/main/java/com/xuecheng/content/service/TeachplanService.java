@@ -1,5 +1,6 @@
 package com.xuecheng.content.service;
 
+import com.xuecheng.content.model.dto.BindTeachplanMediaDto;
 import com.xuecheng.content.model.dto.SaveTeachplanDto;
 import com.xuecheng.content.model.po.Teachplan;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -29,4 +30,10 @@ public interface TeachplanService {
      * @param teachplanDto
      */
     void saveTeachplan(SaveTeachplanDto teachplanDto);
+
+    /**
+     * 教学计划绑定媒资
+     * @param bindTeachplanMediaDto
+     */
+    void associationMedia(BindTeachplanMediaDto bindTeachplanMediaDto);
 }
