@@ -1,6 +1,7 @@
 package com.xuecheng.base.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -8,6 +9,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * ClassName: GlobalExceptionHandler
@@ -57,6 +61,11 @@ public class GlobalExceptionHandler {
         log.error("运行时异常:-------------->",e);
         BindingResult bindingResult = e.getBindingResult();
         ObjectError objectError = bindingResult.getAllErrors().stream().findFirst().get();
-        return new RestErrorResponse(objectError.toString());
+
+        // 存储错误信息
+        List<String> errors = new ArrayList<>();
+        bindingResult.getFieldErrors().forEach(item -> errors.add(item.getDefaultMessage()));
+        String errorMessage = StringUtils.join(errors, ",");
+        return new RestErrorResponse(errorMessage);
     }
 }

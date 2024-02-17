@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xuecheng.base.exception.LearnOnlineException;
 import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
 import com.xuecheng.content.mapper.CourseBaseMapper;
@@ -11,6 +12,7 @@ import com.xuecheng.content.mapper.CourseCategoryMapper;
 import com.xuecheng.content.mapper.CourseMarketMapper;
 import com.xuecheng.content.model.dto.AddCourseDto;
 import com.xuecheng.content.model.dto.QueryCourseParamsDto;
+import com.xuecheng.content.model.dto.UpdateCourseDto;
 import com.xuecheng.content.model.po.CourseBase;
 import com.xuecheng.content.model.po.CourseCategory;
 import com.xuecheng.content.model.po.CourseMarket;
@@ -19,6 +21,7 @@ import com.xuecheng.content.service.CourseBaseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Bean;
+import org.springframework.expression.spel.ast.ValueRef;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -109,7 +112,7 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
      * @param courseId 课程id
      * @return 课程信息
      */
-    private CourseBaseInfoVo getCourseBaseInfo(Long courseId) {
+    public CourseBaseInfoVo getCourseBaseInfo(Long courseId) {
         // 获取课程基本信息、课程营销信息
         CourseBase courseBase = courseBaseMapper.selectById(courseId);
         if (courseBase == null) {
@@ -151,5 +154,27 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
             BeanUtils.copyProperties(courseMarket, oldCourseMarket);
             courseMarketMapper.updateById(oldCourseMarket);
         }
+    }
+
+    @Override
+    public CourseBaseInfoVo updateCourseBase(Long companyId, UpdateCourseDto updateCourseDto) {
+        Long courseId = updateCourseDto.getId();
+        CourseBase courseBase = courseBaseMapper.selectById(courseId);
+        if (courseBase == null) {
+            throw new LearnOnlineException("课程不存在");
+        }
+
+        // 数据校验，本机构只能修改本机构的课程
+        if (!companyId.equals(courseBase.getCompanyId())) {
+            throw new LearnOnlineException("本机构只能修改本机构的课程");
+        }
+
+        // 数据封装，更新数据库
+        BeanUtils.copyProperties(updateCourseDto, courseBase);
+        courseBase.setChangeDate(LocalDateTime.now());
+        courseBaseMapper.updateById(courseBase);
+
+        // 获取课程信息
+        return getCourseBaseInfo(courseId);
     }
 }
