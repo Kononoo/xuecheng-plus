@@ -1,6 +1,7 @@
 package com.xuecheng.content.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.xuecheng.base.exception.LearnOnlineException;
 import com.xuecheng.content.mapper.TeachplanMapper;
 import com.xuecheng.content.mapper.TeachplanMediaMapper;
@@ -86,5 +87,22 @@ public class TeachplanServiceImpl implements TeachplanService {
         teachplanMedia.setCourseId(teachplan.getCourseId());
         teachplanMedia.setMediaFilename(bindTeachplanMediaDto.getFileName());
         teachplanMediaMapper.insert(teachplanMedia);
+    }
+
+    @Override
+    @Transactional
+    public void deleteTeachPlan(Long teachplanId) {
+        // 查询当前课程计划是否有小节
+        LambdaQueryWrapper<Teachplan> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Teachplan::getParentid, teachplanId);
+        Integer count = teachplanMapper.selectCount(queryWrapper);
+        if (count > 0) {
+            throw new LearnOnlineException("当前课程计划还有小节信息，无发操作");
+        }
+        // 删除课程计划，及关联的媒资信息
+        teachplanMapper.deleteById(teachplanId);
+        LambdaUpdateWrapper<TeachplanMedia> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(TeachplanMedia::getTeachplanId, teachplanId);
+        teachplanMediaMapper.delete(updateWrapper);
     }
 }

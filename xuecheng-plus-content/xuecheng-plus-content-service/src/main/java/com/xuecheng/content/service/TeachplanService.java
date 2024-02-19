@@ -36,4 +36,10 @@ public interface TeachplanService {
      * @param bindTeachplanMediaDto
      */
     void associationMedia(BindTeachplanMediaDto bindTeachplanMediaDto);
+
+    /**
+     * 删除课程计划
+     * @param teachplanId 计划id
+     */
+    void deleteTeachPlan(Long teachplanId);
 }
