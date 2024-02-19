@@ -42,4 +42,11 @@ public interface TeachplanService {
      * @param teachplanId 计划id
      */
     void deleteTeachPlan(Long teachplanId);
+
+    /**
+     * 课程计划调整排序
+     * @param moveType
+     * @param teachplanId
+     */
+    void orderByTeachplan(String moveType, Long teachplanId);
 }

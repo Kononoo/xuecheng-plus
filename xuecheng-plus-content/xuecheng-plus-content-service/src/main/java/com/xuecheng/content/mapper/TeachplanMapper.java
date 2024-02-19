@@ -3,7 +3,6 @@ package com.xuecheng.content.mapper;
 import com.xuecheng.content.model.po.Teachplan;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xuecheng.content.model.vo.TeachplanVo;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
@@ -21,4 +20,33 @@ public interface TeachplanMapper extends BaseMapper<Teachplan> {
      * @return
      */
     List<TeachplanVo> selectTreeNodes(Long courseId);
+
+
+    /**
+     * 课程计划上排
+     * @param courseId
+     * @param orderby
+     */
+    void moveupOrderGrade1(Long courseId, Integer orderby);
+
+    /**
+     * 课程小节上排
+     * @param parentid
+     * @param orderby
+     */
+    void moveupOrderGrade2(Long parentid, Integer orderby);
+
+    /**
+     * 课程计划下排
+     * @param courseId
+     * @param orderby
+     */
+    void movedownOrderGrade1(Long courseId, Integer orderby);
+
+    /**
+     * 课程小节下排
+     * @param parentid
+     * @param orderby
+     */
+    void movedownOrderGrade2(Long courseId, Integer orderby);
 }

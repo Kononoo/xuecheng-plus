@@ -105,4 +105,48 @@ public class TeachplanServiceImpl implements TeachplanService {
         updateWrapper.eq(TeachplanMedia::getTeachplanId, teachplanId);
         teachplanMediaMapper.delete(updateWrapper);
     }
+
+    @Override
+    public void orderByTeachplan(String moveType, Long teachplanId) {
+        Teachplan teachplan = teachplanMapper.selectById(teachplanId);
+        if (teachplan == null) {
+            throw new LearnOnlineException("当前课程计划不存在");
+        }
+        Integer grade = teachplan.getGrade();
+        Long courseId = teachplan.getCourseId();
+        Long parentid = teachplan.getParentid();
+        Integer orderby = teachplan.getOrderby();
+
+        if ("moveup".equals(moveType)) {
+            if (grade == 1) {
+                // 章节上移，找到上一个章节的orderby，然后与其交换orderby
+                teachplan.setOrderby(orderby - 1);
+                teachplanMapper.updateById(teachplan);
+                // 上一个章节向下移
+                teachplanMapper.moveupOrderGrade1(courseId, orderby);
+            } else if (grade == 2) {
+                // 小节上移
+                teachplan.setOrderby(orderby - 1);
+                teachplanMapper.updateById(teachplan);
+                // 上一个小结向下移
+                teachplanMapper.moveupOrderGrade2(parentid, orderby);
+            }
+
+        } else if ("movedown".equals(moveType)) {
+            if (grade == 1) {
+                // 章节上移，找到上一个章节的orderby，然后与其交换orderby
+                teachplan.setOrderby(orderby + 1);
+                teachplanMapper.updateById(teachplan);
+                // 上一个章节向下移
+                teachplanMapper.moveupOrderGrade1(courseId, orderby);
+            } else if (grade == 2) {
+                // 小节上移
+                teachplan.setOrderby(orderby + 1);
+                teachplanMapper.updateById(teachplan);
+                // 上一个小结向下移
+                teachplanMapper.moveupOrderGrade2(parentid, orderby);
+            }
+        }
+
+    }
 }

@@ -56,4 +56,11 @@ public class TeachplanController {
         Assert.notNull(teachplanId, "课程计划ID不能为空");
         teachplanService.deleteTeachPlan(teachplanId);
     }
+
+    @ApiOperation("课程计划排序")
+    @PostMapping("/teachplan/{moveType}/{teachplanId}")
+    public void moveTeachplanOrder(@PathVariable String moveType, @PathVariable Long teachplanId) {
+        Assert.notNull(teachplanId, "课程计划ID不能为空");
+        teachplanService.orderByTeachplan(moveType, teachplanId);
+    }
 }

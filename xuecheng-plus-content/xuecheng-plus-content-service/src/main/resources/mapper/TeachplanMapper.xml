@@ -93,4 +93,33 @@
         order by one.orderby, two.orderby
     </select>
 
+    <update id="moveupOrderGrade1">
+        update teachplan
+        set orderby = orderby + 1
+        where courseId = #{courseId}
+          AND grade = 1
+          AND orderby = orderby - 1
+    </update>
+
+    <update id="moveupOrderGrade2">
+        update teachplan
+        set orderby = orderby + 1
+        where parentid = #{parentid}
+          AND orderby = orderby - 1
+    </update>
+
+    <update id="movedownOrderGrade1">
+        update teachplan
+        set orderby = orderby - 1
+        where courseId = #{courseId}
+          AND grade = 1
+          AND orderby = orderby + 1
+    </update>
+
+    <update id="movedownOrderGrade2">
+        update teachplan
+        set orderby = orderby - 1
+        where parentid = #{parentid}
+          AND orderby = orderby + 1
+    </update>
 </mapper>
