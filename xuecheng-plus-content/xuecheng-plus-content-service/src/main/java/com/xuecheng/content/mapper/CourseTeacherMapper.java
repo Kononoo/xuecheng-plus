@@ -2,6 +2,8 @@ package com.xuecheng.content.mapper;
 
 import com.xuecheng.content.model.po.CourseTeacher;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Delete;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -13,4 +15,6 @@ import org.springframework.stereotype.Repository;
  */
 public interface CourseTeacherMapper extends BaseMapper<CourseTeacher> {
 
+    @Delete("delete * from course_teacher where course_id = #{courseId}")
+    void deleteByCourseId(@Param("courseId") Long courseId);
 }

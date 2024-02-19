@@ -2,28 +2,32 @@ package com.xuecheng.content.service.impl;
 
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xuecheng.base.exception.LearnOnlineException;
 import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
-import com.xuecheng.content.mapper.CourseBaseMapper;
-import com.xuecheng.content.mapper.CourseCategoryMapper;
-import com.xuecheng.content.mapper.CourseMarketMapper;
+import com.xuecheng.content.mapper.*;
 import com.xuecheng.content.model.dto.AddCourseDto;
 import com.xuecheng.content.model.dto.QueryCourseParamsDto;
 import com.xuecheng.content.model.dto.UpdateCourseDto;
 import com.xuecheng.content.model.po.CourseBase;
 import com.xuecheng.content.model.po.CourseCategory;
 import com.xuecheng.content.model.po.CourseMarket;
+import com.xuecheng.content.model.po.Teachplan;
 import com.xuecheng.content.model.vo.CourseBaseInfoVo;
 import com.xuecheng.content.service.CourseBaseService;
+import com.xuecheng.content.service.CourseTeacherService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.expression.spel.ast.ValueRef;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -46,12 +50,14 @@ import java.util.stream.Collectors;
 public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseBase> implements CourseBaseService {
     @Resource
     private CourseBaseMapper courseBaseMapper;
-
     @Resource
     private CourseMarketMapper courseMarketMapper;
-
     @Resource
     private CourseCategoryMapper courseCategoryMapper;
+    @Resource
+    private CourseTeacherMapper courseTeacherMapper;
+    @Resource
+    private TeachplanMapper teachplanMapper;
 
     @Override
     public PageResult<CourseBase> queryCourseBaseList(PageParams pageParams, QueryCourseParamsDto queryCourseParamsDto) {
@@ -176,5 +182,25 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
 
         // 获取课程信息
         return getCourseBaseInfo(courseId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteCourse(Long companyId, Long courseId) {
+        CourseBase courseBase = courseBaseMapper.selectById(courseId);
+        Assert.notNull(courseBase, "当前课程不存在");
+        if (!companyId.equals(courseBase.getCompanyId())) {
+            throw new LearnOnlineException("只允许删除本机构的课程");
+        }
+        // 删除课程教师信息
+        courseTeacherMapper.deleteByCourseId(courseId);
+        // 删除课程营销信息
+        courseMarketMapper.deleteById(courseId);
+        // 删除课程计划
+        LambdaUpdateWrapper<Teachplan> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(Teachplan::getCourseId, courseId);
+        teachplanMapper.delete(updateWrapper);
+        // 删除课程基本信息
+        courseBaseMapper.deleteById(courseId);
     }
 }
