@@ -3,6 +3,8 @@ package com.xuecheng.content.model.po;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -28,16 +30,19 @@ public class CourseTeacher implements Serializable {
     /**
      * 课程标识
      */
+    @NotNull(message = "课程Id不能为空")
     private Long courseId;
 
     /**
      * 教师标识
      */
+    @NotBlank(message = "教师姓名不能为空")
     private String teacherName;
 
     /**
      * 教师职位
      */
+    @NotBlank(message = "教师职位不能为空")
     private String position;
 
     /**
