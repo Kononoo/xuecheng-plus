@@ -10,6 +10,13 @@ spring:
     url: jdbc:mysql://192.168.56.100:3306/xcplus_content?useSSL=false&serverTimezone=UTC&characterEncoding=utf-8&nullCatalogMeansCurrent=true
     username: root
     password: mysql
+  cloud:
+    nacos:
+      server-addr: 192.168.56.100:8848
+      discovery:
+        namespace: dev
+        group: xuecheng-plus
+
 # 日志文件配置路径
 logging:
   config: classpath:log4j2-dev.xml
