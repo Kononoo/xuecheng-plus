@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
  * @author itcast
  */
 @Data
-@ToString
 @TableName("media_process")
 public class MediaProcess implements Serializable {
 

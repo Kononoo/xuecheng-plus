@@ -3,7 +3,7 @@ spring:
     name: media-service
   cloud:
     nacos:
-      server-addr: 192.168.101.65:8848
+      server-addr: 192.168.100.56:8848
       discovery:
         namespace: ${spring.profiles.active}
         group: xuecheng-plus-project
@@ -21,5 +21,11 @@ spring:
   profiles:
     active: dev
 
-
+minio:
+  endpoint: http://192.168.56.100:9000
+  accessKey: minioadmin
+  secretKey: minioadmin
+  bucket:
+    files: mediafiles
+    videofiles: video
 
