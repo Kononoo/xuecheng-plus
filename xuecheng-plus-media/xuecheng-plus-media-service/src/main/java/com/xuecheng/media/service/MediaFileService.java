@@ -63,4 +63,23 @@ public interface MediaFileService {
      * @return
      */
     RestResponse<Boolean> checkChunk(String fileMd5, int chunk);
+
+    /**
+     * 上传文件分块
+     * @param fileMd5  文件md5
+     * @param chunk  分块序号
+     * @param tempFilePath  分块文件本地路径
+     * @return
+     */
+    RestResponse uploadChunk(String fileMd5, int chunk, String tempFilePath);
+
+    /**
+     * 合并文件分块
+     * @param companyId
+     * @param fileMd5
+     * @param chunkTotal
+     * @param uploadFileParamsDto
+     * @return
+     */
+    RestResponse mergeChunks(Long companyId, String fileMd5, int chunkTotal, UploadFileParamsDto uploadFileParamsDto);
 }
