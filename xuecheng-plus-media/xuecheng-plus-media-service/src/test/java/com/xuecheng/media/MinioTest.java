@@ -11,6 +11,11 @@ import org.springframework.util.DigestUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * ClassName: MinioTest
@@ -23,6 +28,7 @@ import java.io.FileOutputStream;
  */
 public class MinioTest {
 
+    public static final int SIZE = 2;
     private MinioClient minioClient =
             MinioClient.builder()
                     .endpoint("http://192.168.56.100:9000")
@@ -89,5 +95,58 @@ public class MinioTest {
         } else {
             System.out.println("校验有误，下载失败！");
         }
+    }
+
+    // 将分块上传到minio
+    @Test
+    public void testUploadChunk() throws Exception {
+        for (int i = 0; i < SIZE; i++) {
+            // 上传文件参数
+            UploadObjectArgs uploadObjectArgs = UploadObjectArgs.builder()
+                    .bucket("testbucket")
+                    .filename("D:\\Code\\test\\chunk\\" + i)
+                    .object("chunk/" + i)
+                    .build();
+
+            minioClient.uploadObject(uploadObjectArgs);
+            System.out.println("上传分块" + i + "成功");
+        }
+    }
+
+    // 将分块进行合并
+    @Test
+    public void testMerge() throws Exception{
+//        List<ComposeSource> sources = new ArrayList<>(30);
+//        for (int i = 0; i < 30; i++) {
+//            ComposeSource composeSource = ComposeSource.builder()
+//                    .bucket("testbucket")
+//                    .object("chunk/" + i)
+//                    .build();
+//            sources.add(composeSource);
+//        }
+
+        // 指定一个常量seed，生成从seed到常量f（由UnaryOperator返回的值得到）的流。根据起始值seed(0)，每次生成一个指定递增值（n+1）的数，limit(5)用于截断流的长度，即只获取前5个元素。
+        // 善用Stream流方式解决问题
+        List<ComposeSource> composeSources = Stream.iterate(0, i -> ++i).limit(SIZE)
+                .map(i -> ComposeSource.builder()
+                        .bucket("testbucket")
+                        .object("chunk/" + i)
+                        .build())
+                .collect(Collectors.toList());
+
+        ComposeObjectArgs composeObjectArgs = ComposeObjectArgs.builder()
+                .bucket("testbucket")
+                .sources(composeSources)
+                .object("merge01.png")  // 合并后的objectName信息
+                .build();
+        // 合并文件 minio默认分块文件大小为5M
+        minioClient.composeObject(composeObjectArgs);
+    }
+
+
+    // 删除分块
+    @Test
+    public void testDeleteChunk(){
+
     }
 }
