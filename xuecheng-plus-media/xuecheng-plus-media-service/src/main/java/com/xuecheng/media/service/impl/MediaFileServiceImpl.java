@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
@@ -47,11 +48,12 @@ import java.util.List;
 @Slf4j
 @Service
 public class MediaFileServiceImpl implements MediaFileService {
-
     @Resource
     private MediaFilesMapper mediaFilesMapper;
     @Resource
     private MinioClient minioClient;
+    @Resource
+    private MediaFileService currentProxy;
 
     @Value("${minio.bucket.files}")
     private String bucket_mediaFile;
@@ -78,6 +80,7 @@ public class MediaFileServiceImpl implements MediaFileService {
 
     }
 
+    // 事务管理成功条件：1 代理对象 2 Transactional注解  即：执行代理对象中有@Transactional注解的方法
     @Override
     public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, String tempFilePath) {
         // 文件名
@@ -96,7 +99,8 @@ public class MediaFileServiceImpl implements MediaFileService {
             throw new LearnOnlineException("上传文件失败");
         }
         // 写入数据库
-        MediaFiles mediaFiles = addMediaFileToDb(companyId, uploadFileParamsDto, bucket_mediaFile, fileMd5, objectName);
+        // 如果直接使用原始对象方法，则事务会失效(没有代理对象继续管理)
+        MediaFiles mediaFiles = currentProxy.addMediaFileToDb(companyId, uploadFileParamsDto, bucket_mediaFile, fileMd5, objectName);
         if (mediaFiles == null) {
             throw new  LearnOnlineException("文件上传后保存信息失败");
         }
@@ -114,7 +118,8 @@ public class MediaFileServiceImpl implements MediaFileService {
      * @param objectName
      * @return
      */
-    private MediaFiles addMediaFileToDb(Long companyId, UploadFileParamsDto uploadFileParamsDto, String bucket, String fileMd5, String objectName) {
+    @Transactional
+    public MediaFiles addMediaFileToDb(Long companyId, UploadFileParamsDto uploadFileParamsDto, String bucket, String fileMd5, String objectName) {
         MediaFiles mediaFiles = mediaFilesMapper.selectById(fileMd5);
         if (mediaFiles == null) {
             mediaFiles = new MediaFiles();
@@ -132,8 +137,8 @@ public class MediaFileServiceImpl implements MediaFileService {
                 log.error("文件信息保存失败");
                 return null;
             }
-            return mediaFiles;
         }
+        return mediaFiles;
     }
 
 
