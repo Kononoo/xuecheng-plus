@@ -29,3 +29,17 @@ minio:
     files: mediafiles
     videofiles: video
 
+xxl:
+  job:
+    admin:
+      addresses: http://192.168.56.100:8088/xxl-job-admin
+    executor:
+      appName: testHandler
+      address:
+      ip:
+      port: 9999
+      logpath: /data/applogs/xxl-job/jobhandler
+      logretentiondays: 30
+    accessToken: default_token
+videoProcess:
+  ffmpegPath: D:\BaiduNetdisk\资源下载\2、黑马程序员Java项目《学成在线》企业级开发实战\学成在线项目—资料\day01 项目介绍&环境搭建\资料\常用软件工具\ffmpeg.exe

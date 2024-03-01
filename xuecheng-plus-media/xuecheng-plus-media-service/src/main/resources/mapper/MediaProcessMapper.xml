@@ -19,4 +19,20 @@
         id, file_id, filename, bucket, status, create_date, finish_date, url
     </sql>
 
+
+    <select id="selectListBySharedIndex" resultType="com.xuecheng.media.model.po.MediaProcess">
+        select * from media_process t
+        where t.id % #{shardTotal} = #{shardIndex}
+        AND t.status in (1, 3)
+        AND t.fail_count < 3
+        limit #{count}
+    </select>
+
+    <update id="startTask">
+        update media_process m
+        set m.status = '4'
+        where m.status in ('1', '3')
+        and m.fail_count < 3
+        and m.id = #{id}
+    </update>
 </mapper>

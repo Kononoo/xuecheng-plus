@@ -2,8 +2,6 @@ package com.xuecheng.media.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import com.j256.simplemagic.ContentInfo;
 import com.j256.simplemagic.ContentInfoUtil;
 import com.xuecheng.base.exception.LearnOnlineException;
@@ -11,39 +9,37 @@ import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
 import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.media.mapper.MediaFilesMapper;
+import com.xuecheng.media.mapper.MediaProcessMapper;
 import com.xuecheng.media.model.dto.QueryMediaParamsDto;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
 import com.xuecheng.media.model.po.MediaFiles;
+import com.xuecheng.media.model.po.MediaProcess;
 import com.xuecheng.media.service.MediaFileService;
 import io.minio.*;
-import io.minio.errors.*;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
-import javafx.beans.binding.MapExpression;
-import javafx.beans.binding.ObjectExpression;
-import kotlin.time.MeasureTimeKt;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import java.io.*;
-import java.nio.file.Files;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -59,6 +55,8 @@ public class MediaFileServiceImpl implements MediaFileService {
     @Resource
     private MediaFilesMapper mediaFilesMapper;
     @Resource
+    private MediaProcessMapper mediaProcessMapper;
+    @Resource
     private MinioClient minioClient;
     @Resource
     private MediaFileService currentProxy;
@@ -69,7 +67,7 @@ public class MediaFileServiceImpl implements MediaFileService {
     private String bucket_video;
 
     @Override
-    public PageResult<MediaFiles> queryMediaFiels(Long companyId, PageParams pageParams, QueryMediaParamsDto queryMediaParamsDto) {
+    public PageResult<MediaFiles> queryMediaFiles(Long companyId, PageParams pageParams, QueryMediaParamsDto queryMediaParamsDto) {
 
         //构建查询条件对象
         LambdaQueryWrapper<MediaFiles> queryWrapper = new LambdaQueryWrapper<>();
@@ -146,8 +144,35 @@ public class MediaFileServiceImpl implements MediaFileService {
                 log.error("文件信息保存失败");
                 return null;
             }
+            // 记录待处理任务
+            addWaitingTask(mediaFiles);
         }
         return mediaFiles;
+    }
+
+    /**
+     * 添加待处理任务
+     * @param mediaFiles 媒资文件信息
+     */
+    private void addWaitingTask(MediaFiles mediaFiles) {
+        // 获取文件mineType
+        String filename = mediaFiles.getFilename();
+        String extension = filename.substring(filename.lastIndexOf("."));
+        String mimeType = getMimeType(extension);
+        if ("video/x-msvideo".equals(mimeType)){
+            // 如果是avi视频写入待处理任务
+            MediaProcess mediaProcess = new MediaProcess();
+            BeanUtils.copyProperties(mediaFiles, mediaProcess);
+            // 状态总是未处理
+            mediaProcess.setStatus("1");
+            mediaProcess.setCreateDate(LocalDateTime.now());
+            mediaProcess.setFailCount(0); // 失败次数默认0
+            mediaProcess.setUrl(null);
+            mediaProcessMapper.insert(mediaProcess);
+        }
+
+
+        // 向media_process插入记录
     }
 
 
@@ -189,7 +214,7 @@ public class MediaFileServiceImpl implements MediaFileService {
      * @param objectName   对象名
      * @return
      */
-    private boolean putMediaFileToMinio(String tempFilePath, String mimeType, String bucket, String objectName) {
+    public boolean putMediaFileToMinio(String tempFilePath, String mimeType, String bucket, String objectName) {
         try {
             UploadObjectArgs uploadObjectArgs = UploadObjectArgs.builder()
                     .bucket(bucket)
@@ -294,7 +319,7 @@ public class MediaFileServiceImpl implements MediaFileService {
                 .sources(composeSources)
                 .build();
         try {
-            minioClient.composeObject(composeObjectArgs)
+            minioClient.composeObject(composeObjectArgs);
         } catch (Exception e) {
             log.error("合并文件出错,bucket:{},objectName:{},错误信息:{}", bucket_video, objectName, e.getMessage());
             return RestResponse.validFail(false, "合并文件出现异常");
@@ -320,7 +345,9 @@ public class MediaFileServiceImpl implements MediaFileService {
             return RestResponse.validFail(false, "文件入库失败");
         }
         //==========清理分块文件=========
-        clearChunkFiles()
+        clearChunkFiles(chunkFileFolderPath, chunkTotal);
+
+        return RestResponse.success(true);
 
     }
 
@@ -354,15 +381,17 @@ public class MediaFileServiceImpl implements MediaFileService {
 
     /**
      * 清除分块文件
+     *
      * @param chunkFileFolderPath 分块文件路径
-     * @param chunkTotal 分块文件总数
+     * @param chunkTotal          分块文件总数
      */
     private void clearChunkFiles(String chunkFileFolderPath, int chunkTotal) {
-        List<DeleteObject> collect = Stream.iterate(0, i -> ++i).limit(chunkTotal).map(i ->
+        List<DeleteObject> deleteObjects = Stream.iterate(0, i -> ++i).limit(chunkTotal).map(i ->
                 new DeleteObject(chunkFileFolderPath + i)).collect(Collectors.toList());
+        
         RemoveObjectsArgs removeObjectsArgs = RemoveObjectsArgs.builder()
                 .bucket(bucket_video)
-                .objects(collect)
+                .objects(deleteObjects)
                 .build();
         // 删除文件
         Iterable<Result<DeleteError>> results = minioClient.removeObjects(removeObjectsArgs);
@@ -374,5 +403,32 @@ public class MediaFileServiceImpl implements MediaFileService {
                 e.printStackTrace();
             }
         });
+    }
+
+    // 测试多线程
+    public void testMultiThread(){
+        final long timeInterval = 1000L;
+        Runnable runnable = () -> {
+            while (true) {
+                // TODO: do something
+                try {
+                    Thread.sleep(timeInterval);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        Thread thread = new Thread(runnable);
+        thread.start();
+
+        // 每个Timer对应一个线程，可以同时启动多个timer并行执行任务，同一个Timer中的任务是并发执行
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // TODO: something
+            }
+        }, 1000, 2000);  // 1s后调度，2s一次
+
     }
 }

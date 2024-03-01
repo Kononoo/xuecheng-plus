@@ -7,9 +7,8 @@ import com.xuecheng.media.model.dto.QueryMediaParamsDto;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
 import com.xuecheng.media.model.po.MediaFiles;
-import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.List;
+import java.io.File;
 
 /**
  * @author Mr.M
@@ -27,19 +26,32 @@ public interface MediaFileService {
      * @author Mr.M
      * @date 2022/9/10 8:57
      */
-    PageResult<MediaFiles> queryMediaFiels(Long companyId, PageParams pageParams, QueryMediaParamsDto queryMediaParamsDto);
+    PageResult<MediaFiles> queryMediaFiles(Long companyId, PageParams pageParams, QueryMediaParamsDto queryMediaParamsDto);
 
     /**
      * 将文件上传minio
-     * @param companyId 机构id
+     *
+     * @param companyId           机构id
      * @param uploadFileParamsDto 文件信息
-     * @param tempFilePath 临时文件路径
+     * @param tempFilePath        临时文件路径
      * @return UploadFileResultDto
      */
     UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, String tempFilePath);
 
     /**
+     * 将文件上传到 minio
+     *
+     * @param tempFilePath 要上传的文件路径
+     * @param mimeType     媒体类型
+     * @param bucket       桶
+     * @param objectName   对象名
+     * @return
+     */
+    boolean putMediaFileToMinio(String tempFilePath, String mimeType, String bucket, String objectName);
+
+    /**
      * 文件信息插入数据库
+     *
      * @param companyId
      * @param uploadFileParamsDto
      * @param bucket
@@ -51,6 +63,7 @@ public interface MediaFileService {
 
     /**
      * 检查文件是否存在
+     *
      * @param fileMd5
      * @return
      */
@@ -58,6 +71,7 @@ public interface MediaFileService {
 
     /**
      * 检测分块是否存在
+     *
      * @param fileMd5
      * @param chunk
      * @return
@@ -66,15 +80,17 @@ public interface MediaFileService {
 
     /**
      * 上传文件分块
-     * @param fileMd5  文件md5
-     * @param chunk  分块序号
-     * @param tempFilePath  分块文件本地路径
+     *
+     * @param fileMd5      文件md5
+     * @param chunk        分块序号
+     * @param tempFilePath 分块文件本地路径
      * @return
      */
     RestResponse uploadChunk(String fileMd5, int chunk, String tempFilePath);
 
     /**
      * 合并文件分块
+     *
      * @param companyId
      * @param fileMd5
      * @param chunkTotal
@@ -82,4 +98,13 @@ public interface MediaFileService {
      * @return
      */
     RestResponse mergeChunks(Long companyId, String fileMd5, int chunkTotal, UploadFileParamsDto uploadFileParamsDto);
+
+    /**
+     * 下载minio文件到本地
+     *
+     * @param bucket     桶
+     * @param objectName 文件名
+     * @return 文件
+     */
+    File downloadFileFromMinio(String bucket, String objectName)
 }
