@@ -2,6 +2,7 @@ package com.xuecheng.content.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xuecheng.base.exception.CommonError;
 import com.xuecheng.base.exception.LearnOnlineException;
 import com.xuecheng.content.mapper.CourseBaseMapper;
 import com.xuecheng.content.mapper.CourseMarketMapper;
@@ -16,6 +17,9 @@ import com.xuecheng.content.model.vo.TeachplanVo;
 import com.xuecheng.content.service.CourseBaseService;
 import com.xuecheng.content.service.CoursePublishService;
 import com.xuecheng.content.service.TeachplanService;
+import com.xuecheng.messagesdk.mapper.MqMessageMapper;
+import com.xuecheng.messagesdk.model.po.MqMessage;
+import com.xuecheng.messagesdk.service.MqMessageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -51,7 +55,8 @@ public class CoursePublishServiceImpl extends ServiceImpl<CoursePublishMapper, C
     @Resource
     private CoursePublishMapper coursePublishMapper;
     @Resource
-    private
+    private MqMessageService mqMessageService;
+
 
     @Override
     public CoursePreviewVo getCoursePreviewInfo(Long courseId) {
@@ -104,7 +109,7 @@ public class CoursePublishServiceImpl extends ServiceImpl<CoursePublishMapper, C
         // 计划信息
         String teachplanJson = JSON.toJSONString(teachPlanTree);
         coursePublishPre.setTeachplan(teachplanJson);
-        // 其他信息
+        // 其他信息，修改为已审核
         coursePublishPre.setStatus("202003");
         coursePublishPre.setCreateDate(LocalDateTime.now());
 
@@ -121,6 +126,7 @@ public class CoursePublishServiceImpl extends ServiceImpl<CoursePublishMapper, C
     }
 
     @Override
+    @Transactional
     public void publish(Long companyId, Long courseId) {
         // 查询课程发布表
         CoursePublishPre coursePublishPre = coursePublishPreMapper.selectById(courseId);
@@ -146,6 +152,8 @@ public class CoursePublishServiceImpl extends ServiceImpl<CoursePublishMapper, C
         // 向消息表写入数据
         savaCoursePublishMessage(courseId);
 
+        // 删除预发布表的数据
+        coursePublishPreMapper.deleteById(courseId);
     }
 
     /**
@@ -153,6 +161,9 @@ public class CoursePublishServiceImpl extends ServiceImpl<CoursePublishMapper, C
      * @param courseId
      */
     private void savaCoursePublishMessage(Long courseId) {
-
+        MqMessage mqMessage = mqMessageService.addMessage("course_publish", String.valueOf(courseId), null, null);
+        if(mqMessage == null) {
+            throw new LearnOnlineException(CommonError.UNKNOWN_ERROR.getErrMessage());
+        }
     }
 }
