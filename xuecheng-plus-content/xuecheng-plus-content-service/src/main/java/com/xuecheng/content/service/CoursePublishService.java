@@ -2,6 +2,7 @@ package com.xuecheng.content.service;
 
 import com.xuecheng.content.model.po.CoursePublish;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.xuecheng.content.model.vo.CoursePreviewVo;
 
 /**
  * <p>
@@ -13,4 +14,10 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface CoursePublishService extends IService<CoursePublish> {
 
+    /**
+     * @description 获取课程预览信息
+     * @param courseId 课程id
+     * @return
+     */
+    CoursePreviewVo getCoursePreviewInfo(Long courseId);
 }

@@ -23,6 +23,19 @@ spring:
         refresh-enabled: true
   profiles:
     active: dev
+  # freemarker配置
+  freemarker:
+    enabled: true
+    cache: true  # 关闭模板缓存
+    settings:
+      template_update_delay: 0
+    suffix: .ftl  # 页面模板的后缀名
+    charset: UTF-8
+    template-loader-path: classpath:/templates/ # 页面模板位置
+    resources:
+      add-mappings: false   # 关闭项目中的静态资源映射 (static、resources)
+
+
 
 # 日志文件配置路径
 logging:

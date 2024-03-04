@@ -106,5 +106,5 @@ public interface MediaFileService {
      * @param objectName 文件名
      * @return 文件
      */
-    File downloadFileFromMinio(String bucket, String objectName)
+    File downloadFileFromMinio(String bucket, String objectName);
 }

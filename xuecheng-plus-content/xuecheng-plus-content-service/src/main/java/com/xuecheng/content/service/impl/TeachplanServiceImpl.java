@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -76,6 +77,11 @@ public class TeachplanServiceImpl implements TeachplanService {
         if (teachplan == null) {
             throw new LearnOnlineException("课程计划不存在");
         }
+        Integer grade = teachplan.getGrade();
+        if (grade != 2) {
+            throw new LearnOnlineException("只允许第二级教学计划绑定媒资文件");
+        }
+
         // 先删除原有记录,根据课程计划id删除它所绑定的媒资
         LambdaQueryWrapper<TeachplanMedia> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(TeachplanMedia::getTeachplanId, bindTeachplanMediaDto.getTeachplanId());
@@ -86,6 +92,7 @@ public class TeachplanServiceImpl implements TeachplanService {
         BeanUtils.copyProperties(bindTeachplanMediaDto, teachplanMedia);
         teachplanMedia.setCourseId(teachplan.getCourseId());
         teachplanMedia.setMediaFilename(bindTeachplanMediaDto.getFileName());
+        teachplanMedia.setCreateDate(LocalDateTime.now());
         teachplanMediaMapper.insert(teachplanMedia);
     }
 
