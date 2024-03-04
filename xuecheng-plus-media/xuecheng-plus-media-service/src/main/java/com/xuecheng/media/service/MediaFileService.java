@@ -107,4 +107,11 @@ public interface MediaFileService {
      * @return 文件
      */
     File downloadFileFromMinio(String bucket, String objectName);
+
+    /**
+     * 根据id获取媒资文件
+     * @param mediaId
+     * @return
+     */
+    MediaFiles getFileById(String mediaId);
 }

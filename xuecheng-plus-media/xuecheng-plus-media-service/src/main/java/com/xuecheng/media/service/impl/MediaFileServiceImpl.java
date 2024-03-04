@@ -405,6 +405,12 @@ public class MediaFileServiceImpl implements MediaFileService {
         });
     }
 
+    @Override
+    public MediaFiles getFileById(String mediaId) {
+        MediaFiles mediaFiles = mediaFilesMapper.selectById(mediaId);
+        return mediaFiles;
+    }
+
     // 测试多线程
     public void testMultiThread(){
         final long timeInterval = 1000L;

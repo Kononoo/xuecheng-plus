@@ -12,4 +12,5 @@ import com.xuecheng.content.model.po.CourseBase;
  */
 public interface CourseBaseMapper extends BaseMapper<CourseBase> {
 
+    void updateAuditStatus(Long courseId, String auditStatus);
 }

@@ -20,4 +20,18 @@ public interface CoursePublishService extends IService<CoursePublish> {
      * @return
      */
     CoursePreviewVo getCoursePreviewInfo(Long courseId);
+
+    /**
+     * 课程发布接口
+     * @param companyId
+     * @param courseId
+     */
+    void commitAudit(Long companyId, Long courseId);
+
+    /**
+     * 课程发布
+     * @param companyId 公司id
+     * @param courseId 课程id
+     */
+    void publish(Long companyId, Long courseId);
 }
