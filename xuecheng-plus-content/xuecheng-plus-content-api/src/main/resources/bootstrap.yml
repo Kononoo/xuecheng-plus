@@ -53,3 +53,16 @@ mybatis-plus:
   type-aliases-package: com.xuecheng.content.model.dto
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+xxl:
+  job:
+    admin:
+      addresses: http://192.168.56.100:8089/xxl-job-admin
+    executor:
+      appname: coursepublish-job
+      address:
+      ip:
+      port: 8999
+      logpath: /data/applogs/xxl-hob/jobhandler
+      logretentiondays: 30
+    accessToken: default_token

@@ -27,6 +27,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.io.File;
@@ -34,7 +35,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -88,7 +88,7 @@ public class MediaFileServiceImpl implements MediaFileService {
 
     // 事务管理成功条件：1 代理对象 2 Transactional注解  即：执行代理对象中有@Transactional注解的方法
     @Override
-    public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, String tempFilePath) {
+    public UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, String tempFilePath, String objectName) {
         // 文件名
         String filename = uploadFileParamsDto.getFilename();
         // 获取minioType
@@ -97,7 +97,9 @@ public class MediaFileServiceImpl implements MediaFileService {
         // 获取子目录
         String defaultFolderPath = getDefaultFolderPath();
         String fileMd5 = getFileMd5(new File(tempFilePath));
-        String objectName = defaultFolderPath + fileMd5 + extension;
+        if (StringUtils.isEmpty(objectName)) {
+            objectName = defaultFolderPath + fileMd5 + extension;
+        }
 
         // 上传文件到minio
         boolean result = putMediaFileToMinio(tempFilePath, mimeType, bucket_mediaFile, objectName);

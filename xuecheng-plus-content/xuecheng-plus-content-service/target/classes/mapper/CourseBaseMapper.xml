@@ -28,5 +28,10 @@
     <sql id="Base_Column_List">
         id, company_id, company_name, name, users, tags, mt, st, grade, teachmode, description, pic, create_date, change_date, create_people, change_people, audit_status, status
     </sql>
+    <update id="updateAuditStatus">
+        update course_base
+        set audit_status = #{auditStatus}
+        where id = #{courseId}
+    </update>
 
 </mapper>

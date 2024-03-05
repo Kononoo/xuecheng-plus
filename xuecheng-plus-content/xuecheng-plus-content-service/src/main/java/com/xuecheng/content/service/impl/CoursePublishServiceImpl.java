@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xuecheng.base.exception.CommonError;
 import com.xuecheng.base.exception.LearnOnlineException;
+import com.xuecheng.content.config.MultipartSupportConfig;
+import com.xuecheng.content.feignclient.MediaServiceClient;
 import com.xuecheng.content.mapper.CourseBaseMapper;
 import com.xuecheng.content.mapper.CourseMarketMapper;
 import com.xuecheng.content.mapper.CoursePublishMapper;
@@ -20,15 +22,25 @@ import com.xuecheng.content.service.TeachplanService;
 import com.xuecheng.messagesdk.mapper.MqMessageMapper;
 import com.xuecheng.messagesdk.model.po.MqMessage;
 import com.xuecheng.messagesdk.service.MqMessageService;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.beans.Encoder;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -56,6 +68,8 @@ public class CoursePublishServiceImpl extends ServiceImpl<CoursePublishMapper, C
     private CoursePublishMapper coursePublishMapper;
     @Resource
     private MqMessageService mqMessageService;
+    @Resource
+    private MediaServiceClient mediaServiceClient;
 
 
     @Override
@@ -158,12 +172,65 @@ public class CoursePublishServiceImpl extends ServiceImpl<CoursePublishMapper, C
 
     /**
      * 保存课程消息表信息
+     *
      * @param courseId
      */
     private void savaCoursePublishMessage(Long courseId) {
         MqMessage mqMessage = mqMessageService.addMessage("course_publish", String.valueOf(courseId), null, null);
-        if(mqMessage == null) {
+        if (mqMessage == null) {
             throw new LearnOnlineException(CommonError.UNKNOWN_ERROR.getErrMessage());
         }
+    }
+
+    @Override
+    public File generateCourseHtml(Long courseId) {
+        Configuration configuration = new Configuration(Configuration.getVersion());
+        // 生成静态文件
+        File htmlFile = null;
+
+        try {
+            // 拿到模板
+            String classpath = this.getClass().getResource("/").getPath();
+            configuration.setDirectoryForTemplateLoading(new File(classpath + "/templates"));
+            configuration.setDefaultEncoding("utf-8");
+            Template template = configuration.getTemplate("course_template.ftl");
+
+            // 获取数据
+            CoursePreviewVo coursePreviewInfo = this.getCoursePreviewInfo(courseId);
+            HashMap<String, CoursePreviewVo> map = new HashMap<>(1);
+            map.put("model", coursePreviewInfo);
+
+            // 装载数据，获取html文件
+            String html = FreeMarkerTemplateUtils.processTemplateIntoString(template, map);
+            InputStream inputStream = new ByteArrayInputStream(html.getBytes(StandardCharsets.UTF_8));
+            htmlFile = File.createTempFile("coursePublish", ".html");
+            FileOutputStream outputStream = new FileOutputStream(htmlFile);
+            int len = -1;
+            byte[] buffer = new byte[1024 * 4];
+            while ((len = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, len);
+            }
+        } catch (Exception e) {
+            log.error("页面静态化出现问题,课程id:{}", courseId, e);
+        }
+        return htmlFile;
+    }
+
+    @Override
+    public void uploadCourseHtml(Long courseId, File file) {
+        try {
+            // 将File转为MultipartFile
+            MultipartFile multipartFile = MultipartSupportConfig.getMultipartFile(file);
+            // 远程调用得到返回值
+            String upload = mediaServiceClient.upload(multipartFile, "course/" + courseId + ".html");
+            if (upload == null) {
+                log.debug("远程调用走降级逻辑得到上传的结果为null,课程id:{}",courseId);
+                throw new LearnOnlineException("上传静态文件过程中存在异常");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new LearnOnlineException("上传静态文件过程中存在异常");
+        }
+
     }
 }

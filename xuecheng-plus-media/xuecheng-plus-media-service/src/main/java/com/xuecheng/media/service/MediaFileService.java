@@ -34,9 +34,10 @@ public interface MediaFileService {
      * @param companyId           机构id
      * @param uploadFileParamsDto 文件信息
      * @param tempFilePath        临时文件路径
+     * @param objectName
      * @return UploadFileResultDto
      */
-    UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, String tempFilePath);
+    UploadFileResultDto uploadFile(Long companyId, UploadFileParamsDto uploadFileParamsDto, String tempFilePath, String objectName);
 
     /**
      * 将文件上传到 minio

@@ -5,6 +5,7 @@ import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
@@ -18,6 +19,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
  */
 @Slf4j
 @EnableSwagger2Doc
+@EnableFeignClients(basePackages = {"com.xuecheng.content.service.jobhandler"})
 @SpringBootApplication
 public class ContentApplication {
     public static void main(String[] args) {

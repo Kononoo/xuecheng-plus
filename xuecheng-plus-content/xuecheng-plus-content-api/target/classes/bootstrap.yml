@@ -16,6 +16,26 @@ spring:
       discovery:
         namespace: dev
         group: xuecheng-plus
+      config:
+        namespace: dev
+        group: xuecheng-plus
+        file-extension: yaml
+        refresh-enabled: true
+  profiles:
+    active: dev
+  # freemarker配置
+  freemarker:
+    enabled: true
+    cache: true  # 关闭模板缓存
+    settings:
+      template_update_delay: 0
+    suffix: .ftl  # 页面模板的后缀名
+    charset: UTF-8
+    template-loader-path: classpath:/templates/ # 页面模板位置
+    resources:
+      add-mappings: false   # 关闭项目中的静态资源映射 (static、resources)
+
+
 
 # 日志文件配置路径
 logging:
@@ -33,3 +53,16 @@ mybatis-plus:
   type-aliases-package: com.xuecheng.content.model.dto
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+xxl:
+  job:
+    admin:
+      addresses: http://192.168.56.100:8089/xxl-job-admin
+    executor:
+      appname: coursepublish-job
+      address:
+      ip:
+      port: 8999
+      logpath: /data/applogs/xxl-hob/jobhandler
+      logretentiondays: 30
+    accessToken: default_token
