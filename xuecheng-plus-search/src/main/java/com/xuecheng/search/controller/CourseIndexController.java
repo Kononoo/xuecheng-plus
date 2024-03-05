@@ -1,7 +1,6 @@
 package com.xuecheng.search.controller;
 
 import com.xuecheng.base.exception.LearnOnlineException;
-import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.search.po.CourseIndex;
 import com.xuecheng.search.service.IndexService;
 import io.swagger.annotations.Api;

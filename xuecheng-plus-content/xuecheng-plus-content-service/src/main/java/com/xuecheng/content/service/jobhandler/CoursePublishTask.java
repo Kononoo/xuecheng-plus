@@ -1,7 +1,9 @@
 package com.xuecheng.content.service.jobhandler;
 
 import com.xuecheng.base.exception.LearnOnlineException;
+import com.xuecheng.content.feignclient.ContentSearchClient;
 import com.xuecheng.content.mapper.CoursePublishMapper;
+import com.xuecheng.content.model.po.CourseIndex;
 import com.xuecheng.content.model.po.CoursePublish;
 import com.xuecheng.content.service.CoursePublishService;
 import com.xuecheng.messagesdk.model.po.MqMessage;
@@ -10,6 +12,8 @@ import com.xuecheng.messagesdk.service.MqMessageService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -32,6 +36,8 @@ public class CoursePublishTask extends MessageProcessAbstract {
     private CoursePublishService coursePublishService;
     @Resource
     private CoursePublishMapper coursePublishMapper;
+    @Resource
+    private ContentSearchClient contentSearchClient;
 
     @XxlJob("CoursePublishJobHandler")
     public void coursePublishJobHandler() {
@@ -52,6 +58,7 @@ public class CoursePublishTask extends MessageProcessAbstract {
 
         // 向elasticsearch写索引数据
         saveCourseIndex(mqMessage, courseId);
+
         // 开启redis缓存
 
         // 课程静态化传到nginx
@@ -108,6 +115,15 @@ public class CoursePublishTask extends MessageProcessAbstract {
 
         // 查询课程信息，调用搜素服务添加索引接口
         CoursePublish coursePublish = coursePublishMapper.selectById(courseId);
+        CourseIndex courseIndex = new CourseIndex();
+        BeanUtils.copyProperties(coursePublish, courseIndex);
+        // 远程调用，添加索引
+        Boolean add = contentSearchClient.add(courseIndex);
+        if (!add) {
+            throw new LearnOnlineException("远程调用搜索服务添加课程索引失败");
+        }
+        // 完成本阶段任务
+        mqMessageService.completedStageTwo(taskId);
 
     }
 }
