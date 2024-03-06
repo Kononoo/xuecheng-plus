@@ -13,7 +13,7 @@ import javax.annotation.Resource;
 /**
  * @ClassName: DaoAuthenticationProviderCustom
  * @Package: com.xuecheng.auth.config
- * @Description:
+ * @Description: 重写了 DaoAuthenticationProvider 校验密码的方法
  * @Author: Ronan
  * @Create 2024/3/5 - 21:18
  * @Version: v1.0

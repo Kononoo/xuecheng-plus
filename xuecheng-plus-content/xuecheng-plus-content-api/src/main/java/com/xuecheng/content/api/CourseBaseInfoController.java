@@ -9,6 +9,7 @@ import com.xuecheng.content.model.dto.UpdateCourseDto;
 import com.xuecheng.content.model.po.CourseBase;
 import com.xuecheng.content.model.vo.CourseBaseInfoVo;
 import com.xuecheng.content.service.CourseBaseService;
+import com.xuecheng.content.util.SecurityUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -65,9 +66,10 @@ public class CourseBaseInfoController {
     @PutMapping
     public CourseBaseInfoVo updateCourseBase(@RequestBody @Validated(ValidationGroups.Update.class) UpdateCourseDto updateCourseDto) {
         //获取到用户所属机构的id，这个底层使用了TheadLocal
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Object principal = authentication.getPrincipal();
-
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        Object principal = authentication.getPrincipal();
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
+        String companyId1 = user.getCompanyId();
         Long companyId = 1232141425L;
         CourseBaseInfoVo courseBaseInfoVo =  courseBaseService.updateCourseBase(companyId, updateCourseDto);
         return courseBaseInfoVo;

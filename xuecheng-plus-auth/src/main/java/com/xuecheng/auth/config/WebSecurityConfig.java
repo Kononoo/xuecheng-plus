@@ -70,19 +70,33 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin().successForwardUrl("/login-success");   //登录成功跳转到/login-success
     }
 
+//    public static void main(String[] args) {
+//        String password = "111111";
+//        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+//        for (int i = 0; i < 5; i++) {
+//            //生成密码
+//            String encode = passwordEncoder.encode(password);
+//            System.out.println(encode);
+//            //校验密码,参数1是输入的明文 ，参数2是正确密码加密后的串
+//            boolean matches = passwordEncoder.matches(password, encode);
+//            System.out.println(matches);
+//        }
+//
+//        boolean matches = passwordEncoder.matches("1234", "$2a$10$fb2RlvFwr9HsRu9vH1OxCu/YiMRw6wy5UI6u3s0A.0bVSuR1UqdHK");
+//        System.out.println(matches);
+//    }
+
     public static void main(String[] args) {
-        String password = "111111";
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        String password = "abc123";
+        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         for (int i = 0; i < 5; i++) {
-            //生成密码
-            String encode = passwordEncoder.encode(password);
+            // 生成密码
+            String encode = bCryptPasswordEncoder.encode(password);
             System.out.println(encode);
-            //校验密码,参数1是输入的明文 ，参数2是正确密码加密后的串
-            boolean matches = passwordEncoder.matches(password, encode);
+            // 校验密码
+            boolean matches = bCryptPasswordEncoder.matches(password, encode);
             System.out.println(matches);
         }
-
-        boolean matches = passwordEncoder.matches("1234", "$2a$10$fb2RlvFwr9HsRu9vH1OxCu/YiMRw6wy5UI6u3s0A.0bVSuR1UqdHK");
-        System.out.println(matches);
     }
+
 }
