@@ -1,4 +1,4 @@
-package com.xuecheng.config;
+package com.xuecheng.content.config;
 
 import com.sun.corba.se.impl.encoding.OSFCodeSetRegistry;
 import org.springframework.context.annotation.Configuration;

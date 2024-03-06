@@ -12,6 +12,8 @@ import com.xuecheng.content.service.CourseBaseService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -62,7 +64,10 @@ public class CourseBaseInfoController {
     @ApiOperation("根据id修改课程")
     @PutMapping
     public CourseBaseInfoVo updateCourseBase(@RequestBody @Validated(ValidationGroups.Update.class) UpdateCourseDto updateCourseDto) {
-        //获取到用户所属机构的id
+        //获取到用户所属机构的id，这个底层使用了TheadLocal
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+
         Long companyId = 1232141425L;
         CourseBaseInfoVo courseBaseInfoVo =  courseBaseService.updateCourseBase(companyId, updateCourseDto);
         return courseBaseInfoVo;

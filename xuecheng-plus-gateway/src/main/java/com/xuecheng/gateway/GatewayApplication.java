@@ -1,4 +1,4 @@
-package com.xuecheng;
+package com.xuecheng.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
