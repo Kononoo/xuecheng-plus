@@ -1,12 +1,15 @@
 package com.xuecheng.ucenter.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.xuecheng.ucenter.feignclient.CheckCodeClient;
 import com.xuecheng.ucenter.mapper.XcUserMapper;
 import com.xuecheng.ucenter.model.dto.AuthParamsDto;
 import com.xuecheng.ucenter.model.dto.XcUserExt;
 import com.xuecheng.ucenter.model.po.XcUser;
 import com.xuecheng.ucenter.service.AuthService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -27,6 +30,8 @@ public class PasswordAuthServiceImpl implements AuthService {
     private XcUserMapper xcUserMapper;
     @Resource
     private PasswordEncoder passwordEncoder;
+    @Resource
+    private CheckCodeClient checkCodeClient;
 
     @Override
     public XcUserExt execute(AuthParamsDto authParamsDto) {
@@ -41,7 +46,11 @@ public class PasswordAuthServiceImpl implements AuthService {
             throw new RuntimeException("请输入验证码");
         }
 
-        // TODO：远程调用验证码服务接口校验验证码
+        // 远程调用验证码服务接口校验验证码
+        Boolean verify = checkCodeClient.verify(checkcodekey, checkcode);
+        if (verify == null || !verify) {
+            throw new RuntimeException("验证码输入错误");
+        }
 
         // 账号是否存在，查询数据库
         XcUser xcUser = xcUserMapper.selectOne(new LambdaQueryWrapper<XcUser>().eq(XcUser::getUsername, username));
