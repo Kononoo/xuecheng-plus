@@ -1,10 +1,7 @@
 package com.xuecheng.content.service.impl;
 
-import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xuecheng.base.exception.LearnOnlineException;
@@ -20,18 +17,14 @@ import com.xuecheng.content.model.po.CourseMarket;
 import com.xuecheng.content.model.po.Teachplan;
 import com.xuecheng.content.model.vo.CourseBaseInfoVo;
 import com.xuecheng.content.service.CourseBaseService;
-import com.xuecheng.content.service.CourseTeacherService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.context.annotation.Bean;
-import org.springframework.expression.spel.ast.ValueRef;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import javax.management.QueryEval;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -60,7 +53,7 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
     private TeachplanMapper teachplanMapper;
 
     @Override
-    public PageResult<CourseBase> queryCourseBaseList(PageParams pageParams, QueryCourseParamsDto queryCourseParamsDto) {
+    public PageResult<CourseBase> queryCourseBaseList(Long companyId, PageParams pageParams, QueryCourseParamsDto queryCourseParamsDto) {
 //        List<CourseBase> list = lambdaQuery()
 //                .like(StringUtils.hasText(queryCourseParamsDto.getCourseName()), CourseBase::getName, queryCourseParamsDto.getCourseName())
 //                .eq(StringUtils.hasLength(queryCourseParamsDto.getAuditStatus()), CourseBase::getAuditStatus, queryCourseParamsDto.getAuditStatus()).list();
@@ -70,6 +63,10 @@ public class CourseBaseServiceImpl extends ServiceImpl<CourseBaseMapper, CourseB
         queryWrapper.like(StringUtils.hasText(queryCourseParamsDto.getCourseName()), CourseBase::getName, queryCourseParamsDto.getCourseName());
         //根据课程审核状态查询 course_base.audit_status = ?
         queryWrapper.eq(StringUtils.hasLength(queryCourseParamsDto.getAuditStatus()), CourseBase::getAuditStatus, queryCourseParamsDto.getAuditStatus());
+        // TODO: 按课程发布状态查询
+
+        // 根据机构id查询条件
+        queryWrapper.eq(CourseBase::getCompanyId, companyId);
 
         // 创建page分页查询对象
         Page<CourseBase> page = new Page<>(pageParams.getPageNo(), pageParams.getPageSize());

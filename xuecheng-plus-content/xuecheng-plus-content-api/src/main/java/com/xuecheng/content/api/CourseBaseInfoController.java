@@ -1,5 +1,6 @@
 package com.xuecheng.content.api;
 
+import com.xuecheng.base.exception.LearnOnlineException;
 import com.xuecheng.base.exception.ValidationGroups;
 import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
@@ -17,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,7 +47,17 @@ public class CourseBaseInfoController {
     @PreAuthorize("hasAuthority('xc_teachmanager_course_list')")
     @PostMapping("/list")
     public PageResult<CourseBase> list(PageParams pageParams, @RequestBody(required = false) QueryCourseParamsDto queryCourseParamsDto) {
-        PageResult<CourseBase> courseBasePageResult = courseBaseService.queryCourseBaseList(pageParams, queryCourseParamsDto);
+        // 当前登录用户
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
+        // 获取用户机构id
+        Long companyId;
+        if (StringUtils.hasLength(user.getCompanyId())) {
+            companyId = Long.valueOf(user.getCompanyId());
+        } else {
+            throw new LearnOnlineException("无所属机构，没有权限查询！");
+        }
+
+        PageResult<CourseBase> courseBasePageResult = courseBaseService.queryCourseBaseList(companyId, pageParams, queryCourseParamsDto);
         return courseBasePageResult;
     }
 

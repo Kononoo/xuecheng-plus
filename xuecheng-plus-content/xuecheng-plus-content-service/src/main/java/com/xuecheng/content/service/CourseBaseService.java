@@ -21,11 +21,13 @@ public interface CourseBaseService extends IService<CourseBase> {
 
     /**
      * 课程分页查询
-     * @param pageParams 分页参数
+     *
+     * @param companyId
+     * @param pageParams           分页参数
      * @param queryCourseParamsDto 查询条件
      * @return 查询结果
      */
-    PageResult<CourseBase> queryCourseBaseList(PageParams pageParams, QueryCourseParamsDto queryCourseParamsDto);
+    PageResult<CourseBase> queryCourseBaseList(Long companyId, PageParams pageParams, QueryCourseParamsDto queryCourseParamsDto);
 
     /**
      * 添加课程
