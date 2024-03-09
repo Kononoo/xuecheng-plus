@@ -20,5 +20,5 @@ public interface ContentServiceClient {
 
     @ResponseBody
     @GetMapping("/r/coursepublish/{courseId}")
-    CoursePublish getCoursepublish(@PathVariable("courseId") Long courseId)
+    CoursePublish getCoursepublish(@PathVariable("courseId") Long courseId);
 }
