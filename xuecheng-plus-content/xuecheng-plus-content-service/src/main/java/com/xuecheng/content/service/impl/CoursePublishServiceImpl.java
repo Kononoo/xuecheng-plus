@@ -231,6 +231,12 @@ public class CoursePublishServiceImpl extends ServiceImpl<CoursePublishMapper, C
             e.printStackTrace();
             throw new LearnOnlineException("上传静态文件过程中存在异常");
         }
+    }
 
+
+    @Override
+    public CoursePublish getCoursePublish(Long courseId) {
+        CoursePublish coursePublish = coursePublishMapper.selectById(courseId);
+        return coursePublish;
     }
 }
