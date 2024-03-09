@@ -1,22 +1,28 @@
 package com.xuecheng.learning.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xuecheng.base.exception.LearnOnlineException;
+import com.xuecheng.base.model.PageResult;
 import com.xuecheng.content.model.po.CoursePublish;
 import com.xuecheng.learning.feignclient.ContentServiceClient;
 import com.xuecheng.learning.mapper.XcChooseCourseMapper;
 import com.xuecheng.learning.mapper.XcCourseTablesMapper;
+import com.xuecheng.learning.model.dto.MyCourseTableParams;
 import com.xuecheng.learning.model.dto.XcChooseCourseDto;
 import com.xuecheng.learning.model.dto.XcCourseTablesDto;
 import com.xuecheng.learning.model.po.XcChooseCourse;
 import com.xuecheng.learning.model.po.XcCourseTables;
 import com.xuecheng.learning.service.MyCourseTableService;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.weaver.ast.Var;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @ClassName: MyCourseTableServiceImpl
@@ -37,6 +43,7 @@ public class MyCourseTableServiceImpl implements MyCourseTableService {
     private ContentServiceClient contentServiceClient;
 
     @Override
+    @Transactional
     public XcChooseCourse addChooseCourse(String userId, Long courseId) {
         // 远程调用查询课程是否收费
         CoursePublish coursepublish = contentServiceClient.getCoursepublish(courseId);
@@ -76,7 +83,7 @@ public class MyCourseTableServiceImpl implements MyCourseTableService {
      * @param courseId
      * @return
      */
-    private XcCourseTablesDto getLearningStatus(String userId, Long courseId) {
+    public XcCourseTablesDto getLearningStatus(String userId, Long courseId) {
         // 构造返回值
         XcCourseTablesDto xcCourseTablesDto = new XcCourseTablesDto();
 
@@ -103,8 +110,48 @@ public class MyCourseTableServiceImpl implements MyCourseTableService {
 
 
     /**
+     * 添加免费课程到选课记录表
+     * @param userId
+     * @param coursePublish
+     * @return
+     */
+    private XcChooseCourse addFreeCourse(String userId, CoursePublish coursePublish) {
+        // 课程id
+        Long courseId = coursePublish.getId();
+        // 如果已存在则返回
+        LambdaQueryWrapper<XcChooseCourse> queryWrapper = new LambdaQueryWrapper<XcChooseCourse>()
+                .eq(XcChooseCourse::getUserId, userId)
+                .eq(XcChooseCourse::getCourseId, courseId)
+                .eq(XcChooseCourse::getOrderType, "700001")  // 免费课程
+                .eq(XcChooseCourse::getStatus, "701001");    // 选课成功
+        List<XcChooseCourse> xcChooseCourseList = xcChooseCourseMapper.selectList(queryWrapper);
+        if (xcChooseCourseList != null) {
+            return xcChooseCourseList.get(0);
+        }
+
+        // 向选课表中添加记录
+        XcChooseCourse xcChooseCourse = new XcChooseCourse();
+        xcChooseCourse.setUserId(userId);
+        xcChooseCourse.setCompanyId(coursePublish.getCompanyId());
+        xcChooseCourse.setCourseId(courseId);
+        xcChooseCourse.setCourseName(coursePublish.getName());
+        xcChooseCourse.setCreateDate(LocalDateTime.now());
+        xcChooseCourse.setOrderType("700001");  // 免费课程
+        xcChooseCourse.setValidDays(365);
+        xcChooseCourse.setStatus("701001");     // 选课成功
+        xcChooseCourse.setValidtimeStart(LocalDateTime.now());  // 有效期的开始时间
+        xcChooseCourse.setValidtimeEnd(LocalDateTime.now().plusDays(365));
+
+        int insert = xcChooseCourseMapper.insert(xcChooseCourse);
+        if (insert <= 0) {
+            throw new LearnOnlineException("添加选课记录表失败");
+        }
+        return xcChooseCourse;
+    }
+
+    /**
      * 添加收费课程 - 插入选课记录表
-     *
+     *  只有一条记录才敢selectOne
      * @param userId
      * @param coursePublish
      * @return
@@ -118,13 +165,13 @@ public class MyCourseTableServiceImpl implements MyCourseTableService {
                 .eq(XcChooseCourse::getCourseId, coursePublish.getId())
                 .eq(XcChooseCourse::getOrderType, "700002")   // 收费课程
                 .eq(XcChooseCourse::getStatus, "701002");     // 待支付
-        XcChooseCourse xcChooseCourse = xcChooseCourseMapper.selectOne(queryWrapper);
-        if (xcChooseCourse != null) {
-            return xcChooseCourse;
+        List<XcChooseCourse> xcChooseCourseList = xcChooseCourseMapper.selectList(queryWrapper);
+        if (xcChooseCourseList != null) {
+            return xcChooseCourseList.get(0);
         }
 
         // 插入选课记录
-        xcChooseCourse = new XcChooseCourse();
+        XcChooseCourse xcChooseCourse = new XcChooseCourse();
         xcChooseCourse.setUserId(userId);
         xcChooseCourse.setCompanyId(coursePublish.getCompanyId());
         xcChooseCourse.setCourseId(coursePublish.getId());
@@ -189,45 +236,23 @@ public class MyCourseTableServiceImpl implements MyCourseTableService {
         return xcCourseTablesMapper.selectOne(queryWrapper);
     }
 
+    @Override
+    public PageResult<XcCourseTables> getMyCourseTables(MyCourseTableParams params) {
+        // 用户id、页码、记录数
+        String userId = params.getUserId();
+        int pageNo = params.getPage();
+        int size = params.getSize();
+        // 查询数据
+        Page<XcCourseTables> page = new Page<>(pageNo, size);
+        LambdaQueryWrapper<XcCourseTables> queryWrapper = new LambdaQueryWrapper<XcCourseTables>()
+                .eq(XcCourseTables::getUserId, userId);
+        page = xcCourseTablesMapper.selectPage(page, queryWrapper);
 
-    /**
-     * 添加免费课程到选课记录表
-     *
-     * @param userId
-     * @param coursePublish
-     * @return
-     */
-    private XcChooseCourse addFreeCourse(String userId, CoursePublish coursePublish) {
-        // 课程id
-        Long courseId = coursePublish.getId();
-        // 如果已存在则返回
-        LambdaQueryWrapper<XcChooseCourse> queryWrapper = new LambdaQueryWrapper<XcChooseCourse>()
-                .eq(XcChooseCourse::getUserId, userId)
-                .eq(XcChooseCourse::getCourseId, courseId)
-                .eq(XcChooseCourse::getOrderType, "700001")  // 免费课程
-                .eq(XcChooseCourse::getStatus, "701001");    // 选课成功
-        XcChooseCourse xcChooseCourse = xcChooseCourseMapper.selectOne(queryWrapper);
-        if (xcChooseCourse != null) {
-            return xcChooseCourse;
-        }
+        // 数据封装
+        List<XcCourseTables> records = page.getRecords();
+        long total = page.getTotal();
 
-        // 向选课表中添加记录
-        xcChooseCourse = new XcChooseCourse();
-        xcChooseCourse.setUserId(userId);
-        xcChooseCourse.setCompanyId(coursePublish.getCompanyId());
-        xcChooseCourse.setCourseId(courseId);
-        xcChooseCourse.setCourseName(coursePublish.getName());
-        xcChooseCourse.setCreateDate(LocalDateTime.now());
-        xcChooseCourse.setOrderType("700001");  // 免费课程
-        xcChooseCourse.setValidDays(365);
-        xcChooseCourse.setStatus("701001");     // 选课成功
-        xcChooseCourse.setValidtimeStart(LocalDateTime.now());  // 有效期的开始时间
-        xcChooseCourse.setValidtimeEnd(LocalDateTime.now().plusDays(365));
-
-        int insert = xcChooseCourseMapper.insert(xcChooseCourse);
-        if (insert <= 0) {
-            throw new LearnOnlineException("添加选课记录表失败");
-        }
-        return xcChooseCourse;
+        PageResult<XcCourseTables> xcCourseTablesPageResult = PageResult.of(records, total, pageNo, size);
+        return xcCourseTablesPageResult;
     }
 }

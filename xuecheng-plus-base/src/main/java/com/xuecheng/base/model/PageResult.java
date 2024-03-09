@@ -1,5 +1,6 @@
 package com.xuecheng.base.model;
 
+import com.xuecheng.base.utils.PasswordUtil;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -33,5 +34,18 @@ public class PageResult<T> implements Serializable {
         this.counts = counts;
         this.page = page;
         this.pageSize = pageSize;
+    }
+
+    /**
+     * 构造分页返回参数
+     * @param items
+     * @param counts
+     * @param page
+     * @param pageSize
+     * @return
+     * @param <T>
+     */
+    public static <T> PageResult<T> of(List<T> items, long counts, long page, long pageSize) {
+         return new PageResult<>(items, counts, page, pageSize);
     }
 }
