@@ -29,4 +29,6 @@
         id, username, password, salt, name,nickname,company_id, wx_unionid,userpic, utype, birthday, sex, email, cellphone, qq, status, create_time, update_time
     </sql>
 
+
+
 </mapper>

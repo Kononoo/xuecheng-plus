@@ -35,6 +35,11 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public RestErrorResponse customException(LearnOnlineException e) {
         log.error("系统异常：{}", e.getErrMessage(), e);
+        // SpringSecurity权限异常：AccessDeniedException，
+        // 因为不想引入SpringSecurity依赖(会直接管控所有资源，进行拦截)，所以在这里进行判断
+        if (e.getMessage().equals("不允许访问")) {
+            return new RestErrorResponse("你没有权限操作");
+        }
         return new RestErrorResponse(e.getErrMessage());
     }
 

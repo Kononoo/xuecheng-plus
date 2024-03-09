@@ -76,7 +76,7 @@ public class WxAuthServiceImpl implements AuthService, WxAuthService {
         Map<String, String> accessTokenMap = getAccessToken(code);
         // 获取令牌权限
         String accessToken = accessTokenMap.get("access_token");
-        String openid = accessTokenMap.get("openid");
+        String openid = accessTokenMap.get("openid");  // openid 授权用户唯一标识  unionid 当且仅当该网站应用已获得该用户的userinfo授权时，才会出现该字段。
         // 携带令牌访问用户信息
         Map<String, String> userInfo = getUserInfo(accessToken, openid);
 
